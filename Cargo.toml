@@ -1,0 +1,6 @@
+[package]
+name = "hexdumpr"
+version = "0.1.0"
+authors = ["kovrik <kovrik0@gmail.com>"]
+
+[dependencies]
