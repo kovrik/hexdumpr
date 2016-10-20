@@ -4,7 +4,24 @@ hexdump in Rust
 Usage
 ---
 
+Options:
+
 ```
+-n length Interpret only length bytes of input.
+-s offset Skip offset bytes from the beginning of the input.
+
+-b        One-byte octal display.
+-c        One-byte character display.
+-C        Canonical hex display.
+-d        Two-byte decimal display.
+-o        Two-byte octal display.
+-x        Two-byte hexadecimal display.
+```
+
+```
+> hexdumpr
+Usage: hexdumpr [-bcCdox][-s offset][-n length] file ...
+
 > hexdumpr src/main.rs
 
 src/main.rs:
