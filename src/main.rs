@@ -8,8 +8,6 @@ use std::io::prelude::*;
 mod lib;
 use lib::*;
 
-// TODO usage and help instructions
-// TODO different options
 fn main() {
 
     // parse command line arguments
@@ -17,6 +15,7 @@ fn main() {
     let mut opts = Options::new();
     opts.optflag("h", "help", "Print help");
     opts.optopt("s", "offset", "", "Skip offset bytes from the beginning of the input");
+    opts.optopt("n", "length", "", "Interpret only length bytes of input");
     let matches = match opts.parse(&args[1..]) {
         Ok(m)  => { m }
         Err(f) => { panic!(f.to_string()) }
@@ -52,14 +51,36 @@ fn main() {
 
     let mut f = File::open(&filename).expect("Unable to open file");
     let mut data = Vec::new();
+    // TODO optimize
     f.read_to_end(&mut data).expect("Unable to read data");
 
     if offset > data.len() {
         return;
     }
-    print_hexdump(&data, offset);
+
+    // length in bytes
+    let mut end: usize = data.len();
+    if matches.opt_present("n") {
+        let length = match matches.opt_str("n") {
+            Some(s) => {
+                match s.parse::<usize>() {
+                    Ok(s)  => s,
+                    Err(s) => panic!("hexdumpr: failed to parse length: {}", s),
+                }
+            },
+            None => panic!("hexdumpr: failed to parse length!"),
+        };
+        if length < data.len() - offset {
+            end = offset + length;
+        }
+    }
+    if end == 0 {
+        return;
+    }
+
+    print_hexdump(&data, offset, end);
 }
 
 fn print_usage() {
-    println!("Usage: hexdumpr [-s offset] file ...");
+    println!("Usage: hexdumpr [-s offset][-n length] file ...");
 }
