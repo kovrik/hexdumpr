@@ -1,12 +1,13 @@
 // FIXME byte order
 
-pub fn print_hexdump(data: &[u8]) {
+pub fn print_hexdump(data: &[u8], offset: usize) {
     let mut lines = 0;
     let mut line = Vec::new();
+    let data = &data[offset..];
     for b in data {
         if (line.len() % 16) == 0 {
             // print offset
-            print!("\n{:08x}:", lines * 16);
+            print!("\n{:08x}:", lines * 16 + offset);
             lines = lines + 1;
             line.clear();
         }
