@@ -1,5 +1,3 @@
-// FIXME byte order
-
 pub fn print_hexdump(data: &[u8], offset: usize, end: usize, display: char, bytes: usize) {
     let mut lines = 0;
     let mut line = Vec::new();
@@ -28,7 +26,7 @@ fn print_line(line: &Vec<u8>, display: char, bytes: usize) {
     for b in 0..line.len() / bytes {
         let word = match bytes {
             1 => line[b] as u16,
-            _ => ((line[2*b] as u16) << 8) + (line[2*b + 1] as u16),
+            _ => u16::from_be(((line[2*b] as u16) << 8) + (line[2*b + 1] as u16)),
         };
         match display {
             'x' => print!(" {:04x}",  word),
@@ -62,9 +60,8 @@ fn print_line(line: &Vec<u8>, display: char, bytes: usize) {
 
         print!("  ");
         for c in line {
-            // replace all chars less than SPACE with dots
-            // FIXME Utf8?
-            if *c < 32 {
+            // replace all control chars with dots
+            if (*c as char).is_control() { 
                 print!(".");
             } else {
                 print!("{}", *c as char);
