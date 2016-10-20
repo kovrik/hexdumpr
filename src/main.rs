@@ -9,13 +9,21 @@ mod lib;
 use lib::*;
 
 fn main() {
-
     // parse command line arguments
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
     opts.optflag("h", "help", "Print help");
+
     opts.optopt("s", "offset", "", "Skip offset bytes from the beginning of the input");
     opts.optopt("n", "length", "", "Interpret only length bytes of input");
+
+    opts.optflag("b", "one-byte-octal", "One-byte octal display");
+    opts.optflag("c", "one-byte-char",  "One-byte character display");
+    opts.optflag("C", "canonical-hex",  "Canonical hex display");
+
+    opts.optflag("x", "two-byte-hex",   "Two-byte hexadecimal display");
+    opts.optflag("d", "two-byte-dec",   "Two-byte decimal display");
+    opts.optflag("o", "two-byte-octal", "Two-byte octal display");
     let matches = match opts.parse(&args[1..]) {
         Ok(m)  => { m }
         Err(f) => { panic!(f.to_string()) }
@@ -78,9 +86,31 @@ fn main() {
         return;
     }
 
-    print_hexdump(&data, offset, end);
+    // display mode
+    let mut bytes = 2;
+    let mut display = 'x';
+    if matches.opt_present("b") {
+        display = 'b';
+        bytes = 1;
+    } else if matches.opt_present("c") {
+        display = 'c';
+        bytes = 1;
+    } else if matches.opt_present("C") {
+        display = 'C';
+        bytes = 1;
+    } else if matches.opt_present("x") {
+        display = 'x';
+        bytes = 2;
+    } else if matches.opt_present("d") {
+        display = 'd';
+        bytes = 2;
+    } else if matches.opt_present("o") {
+        display = 'o';
+        bytes = 2;
+    }
+    print_hexdump(&data, offset, end, display, bytes);
 }
 
 fn print_usage() {
-    println!("Usage: hexdumpr [-s offset][-n length] file ...");
+    println!("Usage: hexdumpr [-bcCdox][-s offset][-n length] file ...");
 }
