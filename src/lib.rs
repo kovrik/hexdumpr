@@ -16,7 +16,7 @@ fn format_line(line: &[u8], address: usize, display: char, bytes: usize) -> Stri
     let mut result = String::new();
     result.push_str(&format!("\n{:08x}:", address));
 
-    let words = if (line.len() % bytes) == 0{
+    let words = if (line.len() % bytes) == 0 {
         line.len() / bytes
     } else {
         (line.len() / bytes) + 1
@@ -35,7 +35,7 @@ fn format_line(line: &[u8], address: usize, display: char, bytes: usize) -> Stri
         match display {
             'b' => result.push_str(&format!(" {:03o}",  word)),
             'c' => { match ((word as u8) as char).is_control() {
-                        false => result.push_str(&format!(" {:03}",  (word as u8) as char)),
+                        false => result.push_str(&format!(" {:03}", (word as u8) as char)),
                         _     => result.push_str(&format!(" ")),
                      }
                 },
