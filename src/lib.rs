@@ -1,71 +1,82 @@
-pub fn print_hexdump(data: &[u8], offset: usize, end: usize, display: char, bytes: usize) {
-    let mut lines = 0;
-    let mut line = Vec::new();
-    let data = &data[offset..end];
-    for b in data {
-        if (line.len() % 16) == 0 {
-            // print offset
-            print!("\n{:08x}:", lines * 16 + offset);
-            lines = lines + 1;
-            line.clear();
-        }
-        line.push(*b);
-        if (line.len() % 16) == 0 {
-            print_line(&line, display, bytes);
-        }
-    }
-    if (line.len() % 16) != 0 {
-        if line.len() % 2 == 1 {
-            line.push(0);
-        }
-        print_line(&line, display, bytes);
+use std::cmp;
+
+// FIXME skip option skips by 2 bytes, not by 1
+
+pub fn print_hexdump(data: &[u8], offset: usize, display: char, bytes: usize) {
+    let mut address = offset;
+    while address <= data.len() {
+        let end = cmp::min(address+16, data.len());
+        print!("{}", format_line(&data[address..end], address, display, bytes));
+        address = address + 16;
     }
 }
 
-fn print_line(line: &Vec<u8>, display: char, bytes: usize) {
-    for b in 0..line.len() / bytes {
+// get vector of u8 and return a formatted String
+fn format_line(line: &[u8], address: usize, display: char, bytes: usize) -> String {
+    let mut result = String::new();
+    result.push_str(&format!("\n{:08x}:", address));
+
+    let words = if (line.len() % bytes) == 0{
+        line.len() / bytes
+    } else {
+        (line.len() / bytes) + 1
+    };
+    for b in 0..words {
         let word = match bytes {
             1 => line[b] as u16,
-            _ => u16::from_be(((line[2*b] as u16) << 8) + (line[2*b + 1] as u16)),
+            _ => {
+                if line.len() == bytes*b + 1 {
+                    u16::from_be(((line[bytes * b] as u16) << 8) + 0)
+                } else {
+                    u16::from_be(((line[bytes * b] as u16) << 8) + (line[bytes * b + 1] as u16))
+                }
+            },
         };
         match display {
-            'x' => print!(" {:04x}",  word),
-            'o' => print!(" {:06o} ", word),
-            'd' => print!("  {:05} ", word),
-            'b' => print!(" {:03o}",  word),
-            'C' => print!(" {:02x}",  word),
-            'c' => { match word < 32 {
-                        false => print!(" {:03}",  (word as u8) as char),
-                        _     => print!(" "),
+            'b' => result.push_str(&format!(" {:03o}",  word)),
+            'c' => { match ((word as u8) as char).is_control() {
+                        false => result.push_str(&format!(" {:03}",  (word as u8) as char)),
+                        _     => result.push_str(&format!(" ")),
                      }
                 },
-            _   => print!(" {:04x}", word),
+            'C' => result.push_str(&format!(" {:02x}",  word)),
+            'x' => result.push_str(&format!(" {:04x}",  word)),
+            'o' => result.push_str(&format!(" {:06o} ", word)),
+            'd' => result.push_str(&format!("  {:05} ", word)),
+            _   => result.push_str(&format!(" {:04x}",  word)),
         }
     }
 
-    // align
     if display != 'c' {
-        let padding = match display {
-            'b' => ((16 - line.len())) * 4,
-            'c' => ((16 - line.len())) * 4,
-            'C' => ((16 - line.len())) * 3,
-            'x' => ((16 - line.len())  / 2) * 5,
-            'o' => ((16 - line.len())  / 2) * 8,
-            'd' => ((16 - line.len())  / 2) * 8,
-            _   => ((16 - line.len())  / 2) * 5,
-        };
-        for _ in 0..padding {
-            print!(" ");
+        if (line.len() % 16) > 0 {
+            // align
+            let mut words_left = (16 - line.len()) / bytes;
+            if (line.len() % 2) > 0 {
+                words_left = words_left + 1;
+            }
+            let word_size = match display {
+                'b' => 4,
+                'c' => 4,
+                'C' => 3,
+                'x' => 5,
+                'o' => 8,
+                'd' => 8,
+                _   => 5,
+            };
+            for _ in 0..word_size * words_left {
+                result.push_str(" ");
+            }
         }
 
-        print!("  ");
+        result.push_str("  ");
         for c in line {
             // replace all control chars with dots
             if (*c as char).is_control() { 
-                print!(".");
+                result.push_str(".");
             } else {
-                print!("{}", *c as char);
+                result.push(*c as char);
             }
         }
     }
+    return result;
 }

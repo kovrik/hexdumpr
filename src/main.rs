@@ -8,19 +8,20 @@ use std::io::prelude::*;
 mod lib;
 use lib::*;
 
+fn print_usage() {
+    println!("Usage: hexdumpr [-bcCdox][-s offset][-n length] file ...");
+}
+
 fn main() {
     // parse command line arguments
     let args: Vec<String> = env::args().collect();
     let mut opts = Options::new();
-    opts.optflag("h", "help", "Print help");
-
     opts.optopt("s", "offset", "", "Skip offset bytes from the beginning of the input");
     opts.optopt("n", "length", "", "Interpret only length bytes of input");
-
+    opts.optflag("h", "help", "Print help");
     opts.optflag("b", "one-byte-octal", "One-byte octal display");
     opts.optflag("c", "one-byte-char",  "One-byte character display");
     opts.optflag("C", "canonical-hex",  "Canonical hex display");
-
     opts.optflag("x", "two-byte-hex",   "Two-byte hexadecimal display");
     opts.optflag("d", "two-byte-dec",   "Two-byte decimal display");
     opts.optflag("o", "two-byte-octal", "Two-byte octal display");
@@ -59,7 +60,6 @@ fn main() {
 
     let mut f = File::open(&filename).expect("Unable to open file");
     let mut data = Vec::new();
-    // TODO optimize
     f.read_to_end(&mut data).expect("Unable to read data");
 
     if offset > data.len() {
@@ -108,9 +108,5 @@ fn main() {
         display = 'o';
         bytes = 2;
     }
-    print_hexdump(&data, offset, end, display, bytes);
-}
-
-fn print_usage() {
-    println!("Usage: hexdumpr [-bcCdox][-s offset][-n length] file ...");
+    print_hexdump(&data[offset..end], offset, display, bytes);
 }
