@@ -36,14 +36,9 @@ fn main() {
 
     // offset in bytes
     let offset: usize = if matches.opt_present("s") {
-        match matches.opt_str("s") {
-            Some(s) => {
-                match s.parse::<usize>() {
-                    Ok(s)  => s,
-                    Err(s) => panic!("hexdumpr: failed to parse offset: {}", s),
-                }
-            },
-            None => panic!("hexdumpr: failed to parse offset!"),
+        match matches.opt_str("s").unwrap().parse::<usize>() {
+            Ok(s)  => s,
+            Err(s) => panic!("hexdumpr: failed to parse offset: {}", s),
         }
     } else {
         0
@@ -67,17 +62,13 @@ fn main() {
     }
 
     // length in bytes
-    let mut end: usize = data.len();
+    let mut end = data.len();
     if matches.opt_present("n") {
-        let length = match matches.opt_str("n") {
-            Some(s) => {
-                match s.parse::<usize>() {
-                    Ok(s)  => s,
-                    Err(s) => panic!("hexdumpr: failed to parse length: {}", s),
-                }
-            },
-            None => panic!("hexdumpr: failed to parse length!"),
-        };
+        let length = match matches.opt_str("n").unwrap().parse::<usize>() {
+                         Ok(s)  => s,
+                         Err(s) => panic!("hexdumpr: failed to parse length: {}", s),
+                     };
+        
         if length < data.len() - offset {
             end = offset + length;
         }
