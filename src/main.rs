@@ -35,13 +35,12 @@ fn main() {
     }
 
     // offset in bytes
-    let offset: usize = if args.opt_present("s") {
-        match args.opt_str("s").unwrap().parse::<usize>() {
-            Ok(s)  => s,
-            Err(s) => panic!("hexdumpr: failed to parse offset: {}", s),
-        }
-    } else {
-        0
+    let offset: usize = match args.opt_present("s") {
+        true => match args.opt_str("s").unwrap().parse::<usize>() {
+                    Ok(s)  => s,
+                    Err(s) => panic!("hexdumpr: failed to parse offset: {}", s),
+                },
+        _    => 0,
     };
 
     // get filename
@@ -52,7 +51,6 @@ fn main() {
         return;
     };
     print!("{}:", filename);
-
     let mut f = File::open(&filename).expect("Unable to open file");
     let mut data = Vec::new();
     f.read_to_end(&mut data).expect("Unable to read data");
