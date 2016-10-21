@@ -1,12 +1,10 @@
 use std::cmp;
 
-// FIXME skip option skips by 2 bytes, not by 1
-
 pub fn print_hexdump(data: &[u8], offset: usize, display: char, bytes: usize) {
-    let mut address = offset;
+    let mut address = 0;
     while address <= data.len() {
         let end = cmp::min(address+16, data.len());
-        print!("{}", format_line(&data[address..end], address, display, bytes));
+        print!("{}", format_line(&data[address..end], address + offset, display, bytes));
         address = address + 16;
     }
 }
