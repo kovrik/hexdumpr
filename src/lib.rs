@@ -3,17 +3,15 @@ use std::cmp;
 pub fn print_hexdump(data: &[u8], offset: usize, display: char, bytes: usize) {
     let mut address = 0;
     while address <= data.len() {
-        let end = cmp::min(address+16, data.len());
-        print!("{}", format_line(&data[address..end], address + offset, display, bytes));
+        let end = cmp::min(address + 16, data.len());
+        print_line(&data[address..end], address + offset, display, bytes);
         address = address + 16;
     }
 }
 
-// get vector of u8 and return a formatted String
-fn format_line(line: &[u8], address: usize, display: char, bytes: usize) -> String {
-    let mut result = String::new();
-    result.push_str(&format!("\n{:08x}:", address));
-
+fn print_line(line: &[u8], address: usize, display: char, bytes: usize) {
+    // print address
+    print!("\n{:08x}:", address);
     let words = if (line.len() % bytes) == 0 {
         line.len() / bytes
     } else {
@@ -31,17 +29,17 @@ fn format_line(line: &[u8], address: usize, display: char, bytes: usize) -> Stri
             },
         };
         match display {
-            'b' => result.push_str(&format!(" {:03o}",  word)),
+            'b' => print!(" {:03o}",  word),
             'c' => { match ((word as u8) as char).is_control() {
-                        false => result.push_str(&format!(" {:03}", (word as u8) as char)),
-                        _     => result.push_str(&format!(" ")),
+                        false => print!(" {:03}", (word as u8) as char),
+                        _     => print!(" "),
                      }
                 },
-            'C' => result.push_str(&format!(" {:02x}",  word)),
-            'x' => result.push_str(&format!(" {:04x}",  word)),
-            'o' => result.push_str(&format!(" {:06o} ", word)),
-            'd' => result.push_str(&format!("  {:05} ", word)),
-            _   => result.push_str(&format!(" {:04x}",  word)),
+            'C' => print!(" {:02x}",  word),
+            'x' => print!(" {:04x}",  word),
+            'o' => print!(" {:06o} ", word),
+            'd' => print!("  {:05} ", word),
+            _   => print!(" {:04x}",  word),
         }
     }
 
@@ -62,19 +60,18 @@ fn format_line(line: &[u8], address: usize, display: char, bytes: usize) -> Stri
                 _   => 5,
             };
             for _ in 0..word_size * words_left {
-                result.push_str(" ");
+                print!(" ");
             }
         }
 
-        result.push_str("  ");
+        print!("  ");
         for c in line {
             // replace all control chars with dots
             if (*c as char).is_control() { 
-                result.push_str(".");
+                print!(".");
             } else {
-                result.push(*c as char);
+                print!("{}", (*c as char));
             }
         }
     }
-    return result;
 }
