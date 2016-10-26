@@ -25,10 +25,7 @@ fn main() {
     opts.optflag("x", "two-byte-hex",   "Two-byte hexadecimal display");
     opts.optflag("d", "two-byte-dec",   "Two-byte decimal display");
     opts.optflag("o", "two-byte-octal", "Two-byte octal display");
-    let args = match opts.parse(&args[1..]) {
-        Ok(m)  => { m }
-        Err(f) => { panic!(f.to_string()) }
-    };
+    let args = opts.parse(&args[1..]).unwrap_or_else(|e| panic!(e.to_string()));
     if args.opt_present("h") {
         print_usage();
         return;
@@ -36,10 +33,7 @@ fn main() {
 
     // offset in bytes
     let offset: usize = match args.opt_present("s") {
-        true => match args.opt_str("s").unwrap().parse::<usize>() {
-                    Ok(s)  => s,
-                    Err(s) => panic!("hexdumpr: failed to parse offset: {}", s),
-                },
+        true => args.opt_str("s").unwrap().parse::<usize>().unwrap_or_else(|e| panic!("hexdumpr: failed to parse offset: {}", e)),
         _    => 0,
     };
 
@@ -59,10 +53,7 @@ fn main() {
     // length in bytes
     let mut end = data.len();
     if args.opt_present("n") {
-        let length = match args.opt_str("n").unwrap().parse::<usize>() {
-                         Ok(s)  => s,
-                         Err(s) => panic!("hexdumpr: failed to parse length: {}", s),
-                     };
+        let length = args.opt_str("n").unwrap().parse::<usize>().unwrap_or_else(|e| panic!("hexdumpr: failed to parse length: {}", e));
         if length < data.len() - offset {
             end = offset + length;
         }
